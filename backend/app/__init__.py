@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import logging
+import os
 
 from app.api.routes import router
 from app.core.config import settings
@@ -41,7 +42,11 @@ app.add_middleware(
 )
 
 # Include API routes
-app.include_router(router)
+if os.getenv("VERCEL") == "1":
+    app.include_router(router, prefix="/api/v1")
+else:
+    app.include_router(router)
+
 
 @app.on_event("startup")
 async def startup_event():
