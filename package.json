@@ -1,0 +1,10 @@
+{
+  "name": "startup-guillotine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered startup idea validation platform",
+  "scripts": {
+    "dev": "echo 'Use: cd frontend && npm run dev' && echo 'And: cd backend && python main.py'",
+    "vercel-build": "cd frontend && npm run build"
+  }
+} 
