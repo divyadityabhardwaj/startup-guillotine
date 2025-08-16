@@ -20,16 +20,13 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
-  validateStartupIdea: async (
-    idea: string,
-    fileType: "text" | "pdf" | "docx"
-  ): Promise<ValidationResult> => {
+  validateStartupIdea: async (idea: string): Promise<ValidationResult> => {
     const response = await fetch(`${API_BASE_URL}/validate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content: idea, file_type: fileType }),
+      body: JSON.stringify({ idea: idea }),
     });
     return handleResponse<ValidationResult>(response);
   },

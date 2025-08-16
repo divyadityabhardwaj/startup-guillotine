@@ -2,8 +2,10 @@ import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+
+# Load .env file from the root directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), '.env'))
 
 class Settings(BaseSettings):
     # API Keys

@@ -4,7 +4,12 @@
   "private": true,
   "description": "AI-powered startup idea validation platform",
   "scripts": {
-    "dev": "echo 'Use: cd frontend && npm run dev' && echo 'And: cd backend && python main.py'",
+    "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "python3 backend/main.py",
     "vercel-build": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
   }
-} 
+}

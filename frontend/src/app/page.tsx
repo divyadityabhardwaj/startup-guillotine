@@ -16,34 +16,33 @@ export default function Home() {
   const [result, setResult] = useState<ValidationResultType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const processStartupIdea = useCallback(
-    async (content: string, fileType: "text" | "pdf" | "docx" = "text") => {
-      setStatus("processing");
-      setResult(null);
-      setError(null);
+  const processStartupIdea = useCallback(async (content: string) => {
 
-      try {
-        // Make API call to backend
-        const response = await api.validateStartupIdea(content, fileType);
-        setResult(response);
-        setStatus("completed");
-        toast.success("Startup validation completed!");
-      } catch (error) {
-        console.error("Validation error:", error);
+    setStatus("processing");
+    setResult(null);
+    setError(null);
 
-        if (error instanceof APIError) {
-          setError(error.message);
-          toast.error(`API Error: ${error.message}`);
-        } else {
-          setError("An unexpected error occurred. Please try again.");
-          toast.error("An unexpected error occurred. Please try again.");
-        }
+    try {
+      // Make API call to backend
+      const response = await api.validateStartupIdea(content);
 
-        setStatus("error");
+      setResult(response);
+      setStatus("completed");
+      toast.success("Startup validation completed!");
+    } catch (error) {
+      console.error("Validation error:", error);
+
+      if (error instanceof APIError) {
+        setError(error.message);
+        toast.error(`API Error: ${error.message}`);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred. Please try again.");
       }
-    },
-    []
-  );
+
+      setStatus("error");
+    }
+  }, []);
 
   const handleFileSelect = useCallback(async (file: File, content: string) => {
     setStatus("processing");
@@ -73,7 +72,7 @@ export default function Home() {
 
   const handleTextInput = useCallback(
     (text: string) => {
-      processStartupIdea(text, "text");
+      processStartupIdea(text);
     },
     [processStartupIdea]
   );
@@ -175,7 +174,8 @@ export default function Home() {
                 Analysis Failed
               </h2>
               <p className="text-secondary-600 mb-6">
-                {error || "Something went wrong while analyzing your startup idea. Please try again."}
+                {error ||
+                  "Something went wrong while analyzing your startup idea. Please try again."}
               </p>
               <button onClick={handleReset} className="btn-primary">
                 Try Again
