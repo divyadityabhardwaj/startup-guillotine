@@ -30,8 +30,6 @@ class Settings(BaseSettings):
     FUNCTION_TIMEOUT: int = 60  # Vercel function timeout in seconds
     MAX_CONCURRENT_REQUESTS: int = 5
     
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
 
