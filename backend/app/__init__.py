@@ -5,6 +5,7 @@ import logging
 
 from app.api.routes import router
 from app.core.config import settings
+from app.core.errors import register_error_handlers
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +21,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Register custom error handlers
+register_error_handlers(app)
 
 # Add CORS middleware
 app.add_middleware(
@@ -45,7 +49,13 @@ async def startup_event():
     logging.info("Startup Guillotine Validation API v2.0 starting up...")
     logging.info("Approach: Pure LLM-driven analysis with no fallback logic")
 
+    # Check for required API keys
+    if not settings.GEMINI_API_KEY:
+        logging.error("CRITICAL: GEMINI_API_KEY is not set!")
+    if not settings.TAVILY_API_KEY:
+        logging.error("CRITICAL: TAVILY_API_KEY is not set!")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown event"""
-    logging.info("Startup Guillotine Validation API v2.0 shutting down...") 
+    logging.info("Startup Guillotine Validation API shutting down...")

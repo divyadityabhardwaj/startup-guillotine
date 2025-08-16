@@ -144,10 +144,13 @@ class ServiceHealth(BaseModel):
 # ERROR MODELS
 # ============================================================================
 
+class HTTPError(BaseModel):
+    detail: str = Field(..., description="Detailed error message")
+
 class ValidationError(BaseModel):
     idea: str = Field(..., description="The startup idea that failed validation")
     error_type: str = Field(..., description="Type of error that occurred")
     error_message: str = Field(..., description="Detailed error message")
     data_collection_status: Dict[str, Any] = Field(..., description="Status of data collection")
     retry_recommendations: List[str] = Field(..., description="Recommendations for retry")
-    timestamp: datetime = Field(default_factory=datetime.utcnow) 
+    timestamp: datetime = Field(default_factory=datetime.timezone.utc)

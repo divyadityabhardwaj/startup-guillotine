@@ -33,4 +33,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings() 
+settings = Settings()
+
+if not settings.GEMINI_API_KEY:
+    raise ValueError("Missing required environment variable: GEMINI_API_KEY")
+
+if not settings.TAVILY_API_KEY:
+    raise ValueError("Missing required environment variable: TAVILY_API_KEY")
