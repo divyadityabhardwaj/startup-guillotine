@@ -25,10 +25,9 @@ class Settings(BaseSettings):
     
     # Gemini Models (Flash only for reliability)
     GEMINI_FLASH_MODEL: str = "gemini-1.5-flash"
-    GEMINI_PRO_MODEL: str = "disabled"  # Pro model disabled
     
     # Serverless Settings
-    FUNCTION_TIMEOUT: int = 30  # Vercel function timeout in seconds
+    FUNCTION_TIMEOUT: int = 60  # Vercel function timeout in seconds
     MAX_CONCURRENT_REQUESTS: int = 5
     
     class Config:
