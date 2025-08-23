@@ -91,8 +91,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ### **Core Validation**
 
 - `POST /api/v1/validate` - Comprehensive startup idea validation
-- `POST /api/v1/validate/quick` - Quick validation summary
-- `POST /api/v1/validate/batch` - Batch validation (max 3 ideas)
+
 
 ### **Health & Status**
 

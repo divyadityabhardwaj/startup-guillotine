@@ -8,9 +8,6 @@ from datetime import datetime
 
 class ValidationRequest(BaseModel):
     idea: str = Field(..., min_length=5, max_length=500, description="Startup idea to validate")
-    include_reddit: bool = Field(default=True, description="Whether to include Reddit analysis")
-    include_trends: bool = Field(default=True, description="Whether to include Google Trends analysis")
-    include_competitors: bool = Field(default=True, description="Whether to include competitor analysis")
 
 # ============================================================================
 # CORE ANALYSIS MODELS
@@ -96,11 +93,14 @@ class ComprehensiveAnalysis(BaseModel):
 # ============================================================================
 # VALIDATION RESULT (MAIN OUTPUT)
 # ============================================================================
+class RawDatum(BaseModel):
+    source: str = Field(..., description="Source of the raw data (e.g., 'Google Trends', 'Reddit', 'Tavily Search')")
+    data: Union[Dict[str, Any], str] = Field(..., description="Raw data from the source, can be a dictionary or a string")
 
 class ValidationResult(BaseModel):
     idea: str = Field(..., description="The startup idea that was validated")
     analysis: ComprehensiveAnalysis = Field(..., description="Comprehensive analysis results")
-    raw_data: Dict[str, Any] = Field(..., description="Raw data collected from all sources")
+    raw_data: Optional[List[RawDatum]] = Field(None, description="Optional list of raw data collected from various sources")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     api_status: Dict[str, bool] = Field(..., description="Status of all API services")
     execution_time: float = Field(..., description="Total execution time in seconds")

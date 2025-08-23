@@ -51,8 +51,7 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """Application startup event"""
-    logging.info("Startup Guillotine Validation API v2.0 starting up...")
-    logging.info("Approach: Pure LLM-driven analysis with no fallback logic")
+    logging.info("Startup Guillotine Validation Backend starting up...")
 
     # Check for required API keys
     if not settings.GEMINI_API_KEY:
