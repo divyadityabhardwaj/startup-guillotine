@@ -95,7 +95,7 @@ class ComprehensiveAnalysis(BaseModel):
 # ============================================================================
 class RawDatum(BaseModel):
     source: str = Field(..., description="Source of the raw data (e.g., 'Google Trends', 'Reddit', 'Tavily Search')")
-    data: Union[Dict[str, Any], str] = Field(..., description="Raw data from the source, can be a dictionary or a string")
+    data: str = Field(..., description="Raw data from the source, typically a JSON string or plain text")
 
 class ValidationResult(BaseModel):
     idea: str = Field(..., description="The startup idea that was validated")
