@@ -29,6 +29,7 @@ class AgenticValidationService:
                 "Analyze the startup idea comprehensively and return a JSON object with these exact fields:\n"
                 "\n## BASIC INFO:\n"
                 "- idea: the original idea\n"
+                "- confidence_score: number 0-100 (overall confidence score out of 100 for the startup)\n"
                 "\n## MARKET ASSESSMENT:\n"
                 "- market_score: number 0-100 (overall market opportunity score)\n"
                 "- market_verdict: string (Strong/Promising/Moderate/Weak/High Risk)\n"
@@ -88,6 +89,7 @@ class AgenticValidationService:
             # Return a validation result with error
             return ValidationResult(
                 idea=idea,
+                confidence_score=0,
                 market_score=0,
                 market_verdict="",
                 market_saturation="",

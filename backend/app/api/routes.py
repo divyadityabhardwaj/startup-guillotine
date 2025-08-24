@@ -9,11 +9,6 @@ import os
 from datetime import datetime
 import re
 
- 
-from app.models.schemas import (
-    ConfidenceCalculator,
-    ValidationResult, 
-)
 from app.core.config import settings
 from app.agents.validationAgent import AgenticValidationService
 
@@ -40,16 +35,12 @@ async def validate_startup_idea(
         # Run the agent - returns ValidationResult
         response = await agentic_service.validate_idea(idea)
         validation_result = response.content
-
-        # Calculate confidence score
-        confidence_score = ConfidenceCalculator.calculate_confidence(validation_result)
-
         # Build comprehensive response data
         response_data = {
             "idea": validation_result.idea,
             "analysis": {
                 "analysis_metadata": {
-                    "confidence_score": confidence_score,
+                    "confidence_score": validation_result.confidence_socre,
                     "analysis_depth": validation_result.analysis_depth,
                     "data_sources_used": validation_result.data_sources_used,
                     "analysis_timestamp": datetime.utcnow().isoformat()
