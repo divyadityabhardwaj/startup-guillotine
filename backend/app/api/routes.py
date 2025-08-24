@@ -11,9 +11,8 @@ import re
 
  
 from app.models.schemas import (
+    ConfidenceCalculator,
     ValidationResult, 
-    ComprehensiveAnalysis,
-    ValidationError
 )
 from app.core.config import settings
 from app.agents.validationAgent import AgenticValidationService
@@ -36,54 +35,144 @@ async def validate_startup_idea(
 
     if not idea or len(idea.strip()) < 10:
         raise HTTPException(status_code=400, detail="Idea must be at least 10 characters long")
-    logger.info(f"Validating idea: {idea}")
-
+    
     try:
-        # Run the agent
+        # Run the agent - returns ValidationResult
         response = await agentic_service.validate_idea(idea)
+        validation_result = response.content
 
-        if not response or not response.content:
-            raise HTTPException(status_code=500, detail="Agent did not return a valid response.")
+        # Calculate confidence score
+        confidence_score = ConfidenceCalculator.calculate_confidence(validation_result)
 
-        # Extract raw text
-        raw_text = response.content.strip()
+        # Build comprehensive response data
+        response_data = {
+            "idea": validation_result.idea,
+            "analysis": {
+                "analysis_metadata": {
+                    "confidence_score": confidence_score,
+                    "analysis_depth": validation_result.analysis_depth,
+                    "data_sources_used": validation_result.data_sources_used,
+                    "analysis_timestamp": datetime.utcnow().isoformat()
+                },
+                "market_assessment": {
+                    "overall_score": validation_result.market_score,
+                    "verdict": validation_result.market_verdict,
+                    "market_saturation": validation_result.market_saturation,
+                    "entry_barriers": validation_result.entry_barriers,
+                    "market_timing": validation_result.market_timing,
+                    "market_trends": validation_result.market_trends,
+                    "market_size": validation_result.market_size,
+                    "market_growth": validation_result.market_growth
+                },
+                "competitive_landscape": {
+                    "existing_solutions": [{"name": comp} for comp in validation_result.competitors],
+                    "market_gaps": validation_result.market_gaps,
+                    "competitive_advantages": [validation_result.competitive_advantage],
+                    "market_saturation_level": validation_result.market_saturation,
+                    "competitor_strength": validation_result.competitor_strength
+                },
+                "uniqueness_analysis": {
+                    "novelty_score": validation_result.novelty_score,
+                    "differentiation_factors": validation_result.differentiation_factors,
+                    "copycat_risk": validation_result.copycat_risk,
+                    "innovation_level": validation_result.innovation_level,
+                    "unique_value_proposition": validation_result.unique_value_proposition
+                },
+                "business_viability": {
+                    "customer_value_proposition": validation_result.customer_value_proposition,
+                    "target_market_size": validation_result.target_market_size,
+                    "monetization_potential": validation_result.monetization_potential,
+                    "pricing_strategy": validation_result.pricing_strategy,
+                    "customer_acquisition_difficulty": validation_result.customer_acquisition_difficulty,
+                    "feasibility": validation_result.feasibility
+                },
+                "risk_assessment": {
+                    "market_risks": validation_result.market_risks,
+                    "execution_risks": validation_result.execution_risks,
+                    "competitive_risks": validation_result.competitive_risks,
+                    "mitigation_strategies": validation_result.mitigation_strategies,
+                    "risk_level": validation_result.risk_level,
+                    "general_risks": validation_result.risks
+                },
+                "strategic_recommendations": {
+                    "market_entry_strategy": validation_result.market_entry_strategy,
+                    "success_factors": validation_result.success_factors,
+                    "next_steps": validation_result.next_steps,
+                    "timeline_recommendation": validation_result.timeline_recommendation
+                }
+            },
+            "error": validation_result.error,
+            "timestamp": datetime.utcnow().isoformat(),
+            "execution_time": round(time.time() - start_time, 2)
+        }
 
-        # Remove markdown fences
-        if raw_text.startswith("```"):
-            raw_text = raw_text.split("```json", 1)[-1]
-            raw_text = raw_text.split("```", 1)[0].strip()
-
-        # Remove JS-style comments
-        cleaned_text = re.sub(r"//.*", "", raw_text)
-
-        # Remove trailing commas before } or ]
-        cleaned_text = re.sub(r",\s*([}\]])", r"\1", cleaned_text)
-
-        # Parse JSON
-        try:
-            result_dict = json.loads(cleaned_text)
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing failed: {e} | Raw: {cleaned_text}")
-            raise HTTPException(status_code=500, detail="Agent returned invalid JSON")
-
-        if not result_dict or "market_trends" not in result_dict:
-            raise HTTPException(status_code=500, detail="Invalid response from agent")
-
-        # Construct validation result
-        # validation_result = ValidationResult(
-        #     idea=idea,
-        #     analysis=result_dict,
-        #     raw_data=cleaned_text,
-        #     timestamp=datetime.utcnow(),
-        #     api_status=agentic_service.get_services_status(),
-        #     execution_time=time.time() - start_time,
-        #     error=result_dict.get("error"),
-        # )
-
-        return result_dict
+        return response_data
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Validation endpoint error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        
+        # Return a structured error response
+        error_response = {
+            "idea": idea,
+            "analysis": {
+                "analysis_metadata": {
+                    "confidence_score": 0.0,
+                    "analysis_depth": "Failed",
+                    "data_sources_used": [],
+                    "analysis_timestamp": datetime.utcnow().isoformat()
+                },
+                "market_assessment": {
+                    "overall_score": 0,
+                    "verdict": "Unknown",
+                    "market_saturation": "Unknown",
+                    "entry_barriers": "Unknown",
+                    "market_timing": "Unknown",
+                    "market_trends": [],
+                    "market_size": "Unknown",
+                    "market_growth": "Unknown"
+                },
+                "competitive_landscape": {
+                    "existing_solutions": [],
+                    "market_gaps": [],
+                    "competitive_advantages": [],
+                    "market_saturation_level": "Unknown",
+                    "competitor_strength": "Unknown"
+                },
+                "uniqueness_analysis": {
+                    "novelty_score": 0.0,
+                    "differentiation_factors": [],
+                    "copycat_risk": "Unknown",
+                    "innovation_level": "Unknown",
+                    "unique_value_proposition": ""
+                },
+                "business_viability": {
+                    "customer_value_proposition": "",
+                    "target_market_size": "Unknown",
+                    "monetization_potential": "Unknown",
+                    "pricing_strategy": "Unknown",
+                    "customer_acquisition_difficulty": "Unknown",
+                    "feasibility": "Unknown"
+                },
+                "risk_assessment": {
+                    "market_risks": [],
+                    "execution_risks": [],
+                    "competitive_risks": [],
+                    "mitigation_strategies": [],
+                    "risk_level": "Unknown",
+                    "general_risks": []
+                },
+                "strategic_recommendations": {
+                    "market_entry_strategy": "",
+                    "success_factors": [],
+                    "next_steps": [],
+                    "timeline_recommendation": ""
+                }
+            },
+            "error": f"Validation failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat(),
+            "execution_time": round(time.time() - start_time, 2)
+        }
+        
+        return error_response

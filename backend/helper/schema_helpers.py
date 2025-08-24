@@ -1,13 +1,14 @@
-from typing import Any, Dict
+from typing import Any, Dict, Type
 from google.genai.types import Schema
 from pydantic import BaseModel
+from datetime import datetime
 
 
 def dict_to_schema(d: Dict[str, Any]) -> Schema:
     """
     Convert a flattened dict schema into a google.genai.types.Schema recursively.
     """
-    if not isinstance(d, dict):
+    if type(d) is not dict:
         raise TypeError(f"dict_to_schema expected dict, got {type(d)}")
 
     schema_type = d.get("type", "object")
@@ -45,33 +46,48 @@ def dict_to_schema(d: Dict[str, Any]) -> Schema:
     )
 
 
-def flatten_schema(model: type[BaseModel]) -> Dict[str, Any]:
+def flatten_schema(model: Type[BaseModel]) -> Dict[str, Any]:
     """
     Flatten a Pydantic model schema by resolving all $ref entries
     into their actual definitions from $defs.
     Ensures no $ref remains so that google.genai.types.Schema accepts it.
     """
+    if not hasattr(model, "model_json_schema") or not callable(getattr(model, "model_json_schema")):
+        raise TypeError(f"Expected Pydantic model class, got {type(model)}")
+
     schema = model.model_json_schema()
     defs = schema.pop("$defs", {})
 
     def resolve_refs(obj: Any) -> Any:
-        if isinstance(obj, dict):
-            # Resolve references
-            if "$ref" in obj:
-                ref_path = obj["$ref"]
-                if ref_path.startswith("#/$defs/"):
-                    def_name = ref_path.split("/")[-1]
-                    resolved = defs.get(def_name, {})
-                    return resolve_refs(resolved)  # recurse into resolved schema
-                return {}  # drop unknown refs
+    # Dict-like: check for .items() and .get() methods
+        try:
+            if hasattr(obj, "items") and callable(getattr(obj, "items")) and hasattr(obj, "get") and callable(getattr(obj, "get")):
+                if "$ref" in obj:
+                    ref_path = obj["$ref"]
+                    if ref_path.startswith("#/$defs/"):
+                        def_name = ref_path.split("/")[-1]
+                        resolved = defs.get(def_name, {})
+                        return resolve_refs(resolved)
+                    return {}
+                return {k: resolve_refs(v) for k, v in obj.items()}
+        except Exception:
+            pass
 
-            # Recurse into dict keys
-            return {k: resolve_refs(v) for k, v in obj.items()}
+        # List-like: check for __iter__ and __getitem__ (iterable, not a string)
+        try:
+            iter(obj)  # check if iterable
+            obj["__dummy__"]  # will fail for string
+        except Exception:
+            # Not list-like
+            return obj
 
-        elif isinstance(obj, list):
-            # Recurse into list items
-            return [resolve_refs(elem) for elem in obj]
-
-        return obj
+        # If it passed both, treat as list
+        result = []
+        try:
+            for v in obj:
+                result.append(resolve_refs(v))
+            return result
+        except Exception:
+            return obj  # fallback
 
     return resolve_refs(schema)
